@@ -13,6 +13,71 @@ function hexToRgb(hex) {
     } : { r: 0.77, g: 0.61, b: 0.15 }; // Default gold
 }
 
+// Helper to draw a beautiful, filled/outlined rounded rectangle using core PDF-lib shapes
+function drawFilledRoundedRectangle(page, options) {
+    const { x, y, width, height, r, color, borderColor, borderWidth } = options;
+    
+    // 1. Draw solid filled shape if color is provided
+    if (color) {
+        // Central horizontal rect
+        page.drawRectangle({
+            x: x + r,
+            y: y,
+            width: width - 2 * r,
+            height: height,
+            color: color
+        });
+        // Central vertical rect
+        page.drawRectangle({
+            x: x,
+            y: y + r,
+            width: width,
+            height: height - 2 * r,
+            color: color
+        });
+        // 4 filled corner circles of radius r
+        page.drawCircle({ x: x + r, y: y + r, size: r, color: color });
+        page.drawCircle({ x: x + width - r, y: y + r, size: r, color: color });
+        page.drawCircle({ x: x + r, y: y + height - r, size: r, color: color });
+        page.drawCircle({ x: x + width - r, y: y + height - r, size: r, color: color });
+    }
+
+    // 2. Draw border outline if borderColor is provided
+    if (borderColor && borderWidth) {
+        // Draw 4 borders lines
+        page.drawLine({
+            start: { x: x + r, y: y },
+            end: { x: x + width - r, y: y },
+            color: borderColor,
+            thickness: borderWidth
+        });
+        page.drawLine({
+            start: { x: x + r, y: y + height },
+            end: { x: x + width - r, y: y + height },
+            color: borderColor,
+            thickness: borderWidth
+        });
+        page.drawLine({
+            start: { x: x, y: y + r },
+            end: { x: x, y: y + height - r },
+            color: borderColor,
+            thickness: borderWidth
+        });
+        page.drawLine({
+            start: { x: x + width, y: y + r },
+            end: { x: x + width, y: y + height - r },
+            color: borderColor,
+            thickness: borderWidth
+        });
+
+        // Draw 4 corner circle outlines
+        page.drawCircle({ x: x + r, y: y + r, size: r, borderColor: borderColor, borderWidth: borderWidth });
+        page.drawCircle({ x: x + width - r, y: y + r, size: r, borderColor: borderColor, borderWidth: borderWidth });
+        page.drawCircle({ x: x + r, y: y + height - r, size: r, borderColor: borderColor, borderWidth: borderWidth });
+        page.drawCircle({ x: x + width - r, y: y + height - r, size: r, borderColor: borderColor, borderWidth: borderWidth });
+    }
+}
+
 // --- SECTION 2: VECTOR PDF GENERATOR ENGINE ---
 class PDFGenerator {
     constructor() {}
@@ -117,52 +182,57 @@ class PDFGenerator {
         drawCenteredText(data.shopSubtitle, 750, 7.5, helveticaBold, muted);
 
         // C. Main Greeting Card (Y: ~480 to 710)
-        // Background rectangle
-        page.drawRectangle({
+        // Background rounded rectangle (r=8)
+        drawFilledRoundedRectangle(page, {
             x: 45,
             y: 480,
             width: 505,
             height: 230,
+            r: 8,
             color: cardBg,
             borderColor: borderSoft,
             borderWidth: 1
         });
 
-        // Gift icon border & mini ribbon vector
-        page.drawRectangle({
+        // Gift icon border (rounded corners r=8)
+        drawFilledRoundedRectangle(page, {
             x: 275,
             y: 655,
             width: 44,
             height: 44,
+            r: 8,
             color: innerCardBg,
             borderColor: gold,
             borderWidth: 1
         });
         
-        // Draw decorative vector gift ribbons
-        page.drawRectangle({
+        // Draw decorative vector gift package and beautiful ribbon bow loops on top
+        drawFilledRoundedRectangle(page, {
             x: 287,
             y: 663,
             width: 20,
             height: 20,
+            r: 2,
             borderColor: gold,
-            borderWidth: 1.5,
-            color: undefined
+            borderWidth: 1.5
         });
         // Horizontal ribbon line
         page.drawLine({
             start: { x: 287, y: 673 },
             end: { x: 307, y: 673 },
             color: gold,
-            thickness: 1.5
+            thickness: 2
         });
         // Vertical ribbon line
         page.drawLine({
             start: { x: 297, y: 663 },
             end: { x: 297, y: 683 },
             color: gold,
-            thickness: 1.5
+            thickness: 2
         });
+        // Elegant ribbon loops on top
+        page.drawCircle({ x: 293, y: 685, size: 3.5, borderColor: gold, borderWidth: 1.5 });
+        page.drawCircle({ x: 301, y: 685, size: 3.5, borderColor: gold, borderWidth: 1.5 });
 
         // Card Texts
         drawCenteredText(data.mainBadge, 630, 6, helveticaBold, gold);
@@ -171,13 +241,14 @@ class PDFGenerator {
         // Multi-line wrapped main body greeting
         drawWrappedTextCentered(data.mainBody, 575, 8.5, helvetica, charcoal, 420);
 
-        // Badges Row (Pill Banners)
+        // Badges Row (Pill Banners with r=11)
         // Pill 1
-        page.drawRectangle({
+        drawFilledRoundedRectangle(page, {
             x: 95,
             y: 500,
             width: 190,
             height: 22,
+            r: 11,
             color: innerCardBg,
             borderColor: borderSoft,
             borderWidth: 1
@@ -185,11 +256,12 @@ class PDFGenerator {
         page.drawText(data.badgePill1, { x: 125, y: 507, size: 5.5, font: helveticaBold, color: gold });
         
         // Pill 2
-        page.drawRectangle({
+        drawFilledRoundedRectangle(page, {
             x: 310,
             y: 500,
             width: 190,
             height: 22,
+            r: 11,
             color: innerCardBg,
             borderColor: borderSoft,
             borderWidth: 1
@@ -200,49 +272,62 @@ class PDFGenerator {
         // Header label
         page.drawText(data.sectionLabel, { x: 45, y: 440, size: 7, font: helveticaBold, color: muted });
         
-        // Card Box (Slightly taller to house stacked button)
-        page.drawRectangle({
+        // Card Box (Slightly taller with rounded corners r=8)
+        drawFilledRoundedRectangle(page, {
             x: 45,
             y: 330,
             width: 505,
             height: 95,
+            r: 8,
             color: cardBg,
             borderColor: borderSoft,
             borderWidth: 1
         });
         
-        // Solid left gold border stripe (Thicker 6pt)
-        page.drawRectangle({
+        // Solid left gold border stripe (Thicker 6pt, beautifully rounded)
+        drawFilledRoundedRectangle(page, {
             x: 45,
             y: 330,
             width: 6,
             height: 95,
+            r: 3,
             color: gold
         });
 
-        // Palette icon card box (Warm gold background matching the web design)
-        page.drawRectangle({
+        // Palette icon card box (Warm gold background matching the web design, rounded r=8)
+        drawFilledRoundedRectangle(page, {
             x: 65,
             y: 355,
             width: 44,
             height: 44,
+            r: 8,
             color: gold
         });
         
-        // Beautiful Paint Palette Vector Drawing inside the box (Drawn in dark charcoal/black for stunning contrast)
+        // Beautiful Paint Palette Vector Drawing inside the box (Drawn in solid dark charcoal with gold cutout thumb-hole)
         const paletteDrawColor = rgb(0.1, 0.1, 0.1);
+        
+        // Solid palette body
         page.drawCircle({
             x: 87,
             y: 377,
             size: 9,
-            borderColor: paletteDrawColor,
-            borderWidth: 1.5
+            color: paletteDrawColor
         });
-        // Paint drops
-        page.drawCircle({ x: 83, y: 380, size: 1.2, color: paletteDrawColor });
-        page.drawCircle({ x: 89, y: 382, size: 1.2, color: paletteDrawColor });
-        page.drawCircle({ x: 91, y: 376, size: 1.2, color: paletteDrawColor });
-        page.drawCircle({ x: 85, y: 372, size: 1.2, color: paletteDrawColor });
+        
+        // Thumb hole (Filled with background gold color to look like a cutout!)
+        page.drawCircle({
+            x: 83,
+            y: 374,
+            size: 2.2,
+            color: gold
+        });
+        
+        // 4 elegant gold paint drops on the palette
+        page.drawCircle({ x: 89, y: 382, size: 1.2, color: gold });
+        page.drawCircle({ x: 91, y: 376, size: 1.2, color: gold });
+        page.drawCircle({ x: 86, y: 380, size: 1.2, color: gold });
+        page.drawCircle({ x: 87, y: 372, size: 1.2, color: gold });
 
         // Item Metadata texts
         page.drawText(data.itemIndex, { x: 120, y: 403, size: 6, font: helveticaBold, color: gold });
@@ -262,12 +347,13 @@ class PDFGenerator {
 
         // --- BUTTONS & CLICKABLE LINKS ---
         
-        // DOWNLOAD NOW BUTTON Vector drawing (Stacked vertically under metadata, X: 120)
-        page.drawRectangle({
+        // DOWNLOAD NOW BUTTON Vector drawing (Stacked vertically under metadata, X: 120, rounded corners r=6)
+        drawFilledRoundedRectangle(page, {
             x: 120,
             y: 342,
             width: 115,
             height: 24,
+            r: 6,
             color: gold
         });
         
@@ -294,12 +380,13 @@ class PDFGenerator {
             })
         );
 
-        // E. Instructions Card (Y: ~130 to 325)
-        page.drawRectangle({
+        // E. Instructions Card (Y: ~130 to 325, rounded corners r=8)
+        drawFilledRoundedRectangle(page, {
             x: 45,
             y: 130,
             width: 505,
             height: 195,
+            r: 8,
             color: cardBg,
             borderColor: borderSoft,
             borderWidth: 1
@@ -346,10 +433,13 @@ class PDFGenerator {
         }
         page.drawText('5 STAR RATED STORE', { x: 440, y: 80, size: 6.5, font: helveticaBold, color: gold });
 
-        // LEAVE A REVIEW BUTTON
-        page.drawRectangle({
-            x: 435, y: 52,
-            width: 100, height: 20,
+        // LEAVE A REVIEW BUTTON (with rounded corners r=5)
+        drawFilledRoundedRectangle(page, {
+            x: 435,
+            y: 52,
+            width: 100,
+            height: 20,
+            r: 5,
             color: charcoal
         });
         page.drawText(data.reviewBtnText, { x: 452, y: 59, size: 5.5, font: helveticaBold, color: white });
