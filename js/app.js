@@ -90,9 +90,11 @@ class PDFGenerator {
         
         // 2. Define Theme Color Schemes dynamically
         const pageBg = isDark ? rgb(0.07, 0.07, 0.07) : rgb(1, 1, 1);
-        const cardBg = isDark ? rgb(0.10, 0.10, 0.10) : rgb(0.985, 0.982, 0.975);
+        const cardBg = isDark ? rgb(0.10, 0.10, 0.10) : rgb(0.985, 0.982, 0.975); // Greeting card background (beige)
+        const whiteCardBg = isDark ? rgb(0.10, 0.10, 0.10) : rgb(1, 1, 1); // White card background
         const innerCardBg = isDark ? rgb(0.14, 0.14, 0.14) : rgb(1, 1, 1);
         const borderSoft = isDark ? rgb(0.16, 0.16, 0.16) : rgb(0.92, 0.89, 0.83);
+        const iconBoxBg = isDark ? rgb(0.20, 0.17, 0.08) : rgb(0.99, 0.83, 0.30); // Bright gold/yellow icon box
         
         const charcoal = isDark ? rgb(1, 1, 1) : rgb(0.17, 0.17, 0.17);
         const muted = isDark ? rgb(0.55, 0.55, 0.55) : rgb(0.42, 0.42, 0.42);
@@ -116,11 +118,32 @@ class PDFGenerator {
         const times = await pdfDoc.embedFont('Times-Roman');
         const timesBold = await pdfDoc.embedFont('Times-Bold');
         
-        // 4. Centered Text Helper
-        const drawCenteredText = (text, y, fontSize, font, color) => {
-            const textWidth = font.widthOfTextAtSize(text, fontSize);
+        // Spaced Text Helpers
+        const drawTextSpaced = (text, x, y, fontSize, font, color, letterSpacing = 0) => {
+            let currentX = x;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                page.drawText(char, { x: currentX, y, size: fontSize, font, color });
+                const charWidth = font.widthOfTextAtSize(char, fontSize);
+                currentX += charWidth + letterSpacing;
+            }
+        };
+        
+        const widthOfTextSpaced = (text, fontSize, font, letterSpacing = 0) => {
+            let totalWidth = 0;
+            for (let i = 0; i < text.length; i++) {
+                totalWidth += font.widthOfTextAtSize(text[i], fontSize);
+                if (i < text.length - 1) {
+                    totalWidth += letterSpacing;
+                }
+            }
+            return totalWidth;
+        };
+        
+        const drawCenteredTextSpaced = (text, y, fontSize, font, color, letterSpacing = 0) => {
+            const textWidth = widthOfTextSpaced(text, fontSize, font, letterSpacing);
             const x = (595 - textWidth) / 2;
-            page.drawText(text, { x, y, size: fontSize, font, color });
+            drawTextSpaced(text, x, y, fontSize, font, color, letterSpacing);
         };
         
         // Wrapped Text Center Helper
@@ -143,46 +166,121 @@ class PDFGenerator {
             
             let curY = y;
             for (const line of lines) {
-                drawCenteredText(line, curY, fontSize, font, color);
+                drawCenteredTextSpaced(line, curY, fontSize, font, color, 0);
                 curY -= lineSpacing;
             }
             return curY;
         };
 
+        // Left-Aligned Wrapped Text Helper
+        const drawWrappedTextLeft = (text, x, y, fontSize, font, color, maxW, lineSpacing = 10) => {
+            const words = text.split(' ');
+            let lines = [];
+            let currentLine = '';
+            
+            for (const word of words) {
+                const testLine = currentLine ? `${currentLine} ${word}` : word;
+                const width = font.widthOfTextAtSize(testLine, fontSize);
+                if (width > maxW) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            if (currentLine) lines.push(currentLine);
+            
+            let curY = y;
+            for (const line of lines) {
+                page.drawText(line, { x, y: curY, size: fontSize, font, color });
+                curY -= lineSpacing;
+            }
+            return curY;
+        };
+
+        // Step Number Badge Helper
+        const drawStepNumber = (num, cx, cy, r, color) => {
+            page.drawCircle({ x: cx, y: cy, size: r, color });
+            const numStr = String(num);
+            const numFontSize = 8;
+            const textWidth = helveticaBold.widthOfTextAtSize(numStr, numFontSize);
+            const tx = cx - textWidth / 2;
+            const ty = cy - numFontSize / 2 + 1;
+            page.drawText(numStr, { x: tx, y: ty, size: numFontSize, font: helveticaBold, color: white });
+        };
+
+        // Centered Pill Badge Helper
+        const drawPill = (x, y, width, height, iconType, text) => {
+            drawFilledRoundedRectangle(page, {
+                x, y, width, height,
+                r: height / 2,
+                color: innerCardBg,
+                borderColor: gold,
+                borderWidth: 1
+            });
+
+            const font = helveticaBold;
+            const fontSize = 6.5;
+            const textWidth = widthOfTextSpaced(text, fontSize, font, 0.5);
+            
+            const iconW = 10;
+            const gap = 5;
+            const totalContentW = iconW + gap + textWidth;
+            
+            const startX = x + (width - totalContentW) / 2;
+            const iconX = startX;
+            const iconY = y + (height - 8) / 2;
+            
+            const textX = startX + iconW + gap;
+            const textY = y + (height - fontSize) / 2 + 1;
+            
+            if (iconType === 'link') {
+                drawFilledRoundedRectangle(page, { x: iconX, y: iconY + 1, width: 6, height: 5, r: 1.5, borderColor: gold, borderWidth: 1.2 });
+                drawFilledRoundedRectangle(page, { x: iconX + 4, y: iconY + 1, width: 6, height: 5, r: 1.5, borderColor: gold, borderWidth: 1.2 });
+                page.drawLine({ start: { x: iconX + 3, y: iconY + 3.5 }, end: { x: iconX + 7, y: iconY + 3.5 }, color: gold, thickness: 1.2 });
+            } else if (iconType === 'support') {
+                drawFilledRoundedRectangle(page, { x: iconX, y: iconY + 1.5, width: 11, height: 7, r: 2, borderColor: gold, borderWidth: 1.2 });
+                page.drawLine({ start: { x: iconX + 3, y: iconY + 1.5 }, end: { x: iconX + 1, y: iconY - 1 }, color: gold, thickness: 1.2 });
+                page.drawLine({ start: { x: iconX + 1, y: iconY - 1 }, end: { x: iconX + 6, y: iconY + 1.5 }, color: gold, thickness: 1.2 });
+            }
+            
+            drawTextSpaced(text, textX, textY, fontSize, font, gold, 0.5);
+        };
+
         // --- DRAW VECTORS ---
 
         // A. Outer double gold borders
-        // Outer thick frame
+        // Outer thin frame
         page.drawRectangle({
             x: 15,
             y: 15,
             width: 565,
             height: 812,
             borderColor: gold,
-            borderWidth: 3,
+            borderWidth: 1.5,
             color: undefined
         });
 
         // Inner thin line
         page.drawRectangle({
-            x: 18,
-            y: 18,
-            width: 559,
-            height: 806,
+            x: 19,
+            y: 19,
+            width: 557,
+            height: 804,
             borderColor: gold,
-            borderWidth: 1,
+            borderWidth: 1.5,
             color: undefined
         });
 
-        // B. Brand Header Section (Y: ~740 to 780)
-        drawCenteredText(data.shopTitle, 765, 18, timesBold, charcoal);
-        drawCenteredText(data.shopSubtitle, 750, 7.5, helveticaBold, muted);
+        // B. Brand Header Section
+        drawCenteredTextSpaced(data.shopTitle, 765, 18, timesBold, charcoal, 2.5);
+        drawCenteredTextSpaced(data.shopSubtitle, 750, 7, helveticaBold, muted, 3.5);
 
-        // C. Main Greeting Card (Y: ~480 to 710)
+        // C. Main Greeting Card (Y: ~485 to 715)
         // Background rounded rectangle (r=8)
         drawFilledRoundedRectangle(page, {
             x: 45,
-            y: 480,
+            y: 485,
             width: 505,
             height: 230,
             r: 8,
@@ -194,7 +292,7 @@ class PDFGenerator {
         // Gift icon border (rounded corners r=8)
         drawFilledRoundedRectangle(page, {
             x: 275,
-            y: 655,
+            y: 660,
             width: 44,
             height: 44,
             r: 8,
@@ -206,7 +304,7 @@ class PDFGenerator {
         // Draw decorative vector gift package and beautiful ribbon bow loops on top
         drawFilledRoundedRectangle(page, {
             x: 287,
-            y: 663,
+            y: 668,
             width: 20,
             height: 20,
             r: 2,
@@ -215,78 +313,45 @@ class PDFGenerator {
         });
         // Horizontal ribbon line
         page.drawLine({
-            start: { x: 287, y: 673 },
-            end: { x: 307, y: 673 },
+            start: { x: 287, y: 678 },
+            end: { x: 307, y: 678 },
             color: gold,
             thickness: 2
         });
         // Vertical ribbon line
         page.drawLine({
-            start: { x: 297, y: 663 },
-            end: { x: 297, y: 683 },
+            start: { x: 297, y: 668 },
+            end: { x: 297, y: 688 },
             color: gold,
             thickness: 2
         });
         // Elegant ribbon loops on top
-        page.drawCircle({ x: 293, y: 685, size: 3.5, borderColor: gold, borderWidth: 1.5 });
-        page.drawCircle({ x: 301, y: 685, size: 3.5, borderColor: gold, borderWidth: 1.5 });
+        page.drawCircle({ x: 293, y: 690, size: 3.5, borderColor: gold, borderWidth: 1.5 });
+        page.drawCircle({ x: 301, y: 690, size: 3.5, borderColor: gold, borderWidth: 1.5 });
 
         // Card Texts
-        drawCenteredText(data.mainBadge, 630, 6, helveticaBold, gold);
-        drawCenteredText(data.mainTitle, 605, 16, timesBold, charcoal);
+        drawCenteredTextSpaced(data.mainBadge, 635, 6, helveticaBold, gold, 2);
+        drawCenteredTextSpaced(data.mainTitle, 610, 15, timesBold, charcoal, 0.5);
         
         // Multi-line wrapped main body greeting
-        drawWrappedTextCentered(data.mainBody, 575, 8.5, helvetica, charcoal, 420);
+        drawWrappedTextCentered(data.mainBody, 580, 8.5, helvetica, charcoal, 420, 13);
 
-        // Badges Row (Pill Banners with r=11 and custom gold vector outline icons)
-        // Pill 1
-        drawFilledRoundedRectangle(page, {
-            x: 95,
-            y: 500,
-            width: 190,
-            height: 22,
-            r: 11,
-            color: innerCardBg,
-            borderColor: gold,
-            borderWidth: 1
-        });
-        // Draw detailed vector gold link icon next to text
-        drawFilledRoundedRectangle(page, { x: 104, y: 508, width: 8, height: 6, r: 2, borderColor: gold, borderWidth: 1.2 });
-        drawFilledRoundedRectangle(page, { x: 110, y: 508, width: 8, height: 6, r: 2, borderColor: gold, borderWidth: 1.2 });
-        page.drawLine({ start: { x: 108, y: 511 }, end: { x: 114, y: 511 }, color: gold, thickness: 1.2 });
-        
-        page.drawText(data.badgePill1, { x: 124, y: 507, size: 5.5, font: helveticaBold, color: gold });
-        
-        // Pill 2
-        drawFilledRoundedRectangle(page, {
-            x: 310,
-            y: 500,
-            width: 190,
-            height: 22,
-            r: 11,
-            color: innerCardBg,
-            borderColor: gold,
-            borderWidth: 1
-        });
-        // Draw detailed vector gold message bubble icon next to text
-        drawFilledRoundedRectangle(page, { x: 319, y: 508, width: 11, height: 7, r: 2, borderColor: gold, borderWidth: 1.2 });
-        page.drawLine({ start: { x: 321, y: 508 }, end: { x: 319, y: 505 }, color: gold, thickness: 1.2 });
-        page.drawLine({ start: { x: 319, y: 505 }, end: { x: 324, y: 508 }, color: gold, thickness: 1.2 });
-        
-        page.drawText(data.badgePill2, { x: 336, y: 507, size: 5.5, font: helveticaBold, color: gold });
+        // Badges Row using the beautiful dynamically centered drawPill helper
+        drawPill(95, 505, 190, 22, 'link', data.badgePill1);
+        drawPill(310, 505, 190, 22, 'support', data.badgePill2);
 
-        // D. Download Link Box Card (Y: ~330 to 425)
+        // D. Download Link Box Card (Y: ~335 to 430)
         // Header label
-        page.drawText(data.sectionLabel, { x: 45, y: 440, size: 7, font: helveticaBold, color: muted });
+        drawTextSpaced(data.sectionLabel, 45, 440, 6.5, helveticaBold, gold, 1.5);
         
-        // Card Box (Slightly taller with rounded corners r=8)
+        // Card Box (Slightly taller with rounded corners r=8, crisp WHITE background)
         drawFilledRoundedRectangle(page, {
             x: 45,
-            y: 330,
+            y: 335,
             width: 505,
             height: 95,
             r: 8,
-            color: cardBg,
+            color: whiteCardBg,
             borderColor: borderSoft,
             borderWidth: 1
         });
@@ -294,98 +359,123 @@ class PDFGenerator {
         // Solid left gold border stripe (Thicker 6pt, beautifully rounded)
         drawFilledRoundedRectangle(page, {
             x: 45,
-            y: 330,
+            y: 335,
             width: 6,
             height: 95,
             r: 3,
             color: gold
         });
 
-        // Palette icon card box (Warm gold background matching the web design, rounded r=8)
+        // Palette icon card box (Bright yellow background, rounded r=8)
         drawFilledRoundedRectangle(page, {
             x: 65,
-            y: 355,
+            y: 360,
             width: 44,
             height: 44,
             r: 8,
-            color: gold
+            color: iconBoxBg
         });
         
         // Beautiful Paint Palette Vector Drawing inside the box (Drawn in solid dark charcoal with gold cutout thumb-hole)
         const paletteDrawColor = rgb(0.1, 0.1, 0.1);
         
-        // Beautiful outlined paint palette body (matching the localhost outlined design with an organic bite/cutout)
+        // Beautiful outlined paint palette body
         page.drawCircle({
             x: 87,
-            y: 377,
+            y: 382,
             size: 9,
             borderColor: paletteDrawColor,
             borderWidth: 1.5
         });
-        // Organic palette "bite" cutout filled with background gold color to form a perfect kidney bean shape
+        // Organic palette "bite" cutout filled with background yellow-gold color
         page.drawCircle({
             x: 92.5,
-            y: 372.5,
+            y: 377.5,
             size: 3.5,
-            color: gold
+            color: iconBoxBg
         });
         // Outlined thumb hole
         page.drawCircle({
             x: 83,
-            y: 373,
+            y: 378,
             size: 2.2,
             borderColor: paletteDrawColor,
             borderWidth: 1.2
         });
         
-        // 4 elegant solid paint drops inside the palette (matching the localhost solid drops)
-        page.drawCircle({ x: 88, y: 381.5, size: 1.2, color: paletteDrawColor });
-        page.drawCircle({ x: 92, y: 377.5, size: 1.2, color: paletteDrawColor });
-        page.drawCircle({ x: 85, y: 378, size: 1.2, color: paletteDrawColor });
-        page.drawCircle({ x: 86, y: 372.5, size: 1.2, color: paletteDrawColor });
+        // 4 elegant solid paint drops inside the palette
+        page.drawCircle({ x: 88, y: 386.5, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 92, y: 382.5, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 85, y: 383, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 86, y: 377.5, size: 1.2, color: paletteDrawColor });
 
         // Item Metadata texts
-        page.drawText(data.itemIndex, { x: 120, y: 403, size: 6, font: helveticaBold, color: gold });
+        drawTextSpaced(data.itemIndex, 120, 408, 6, helveticaBold, gold, 1.5);
         
         // Dynamic sizing for item title to prevent overlap with long names
         let itemTitleText = data.itemTitle;
-        let titleFontSize = 8.5; // Neat and bold standard size
+        let titleFontSize = 8.5;
         if (itemTitleText.length > 35) {
-            titleFontSize = 7.5; // Scale down for longer text
+            titleFontSize = 7.5;
         }
         if (itemTitleText.length > 58) {
             itemTitleText = itemTitleText.substring(0, 55) + '...';
         }
-        page.drawText(itemTitleText, { x: 120, y: 389, size: titleFontSize, font: helveticaBold, color: charcoal });
+        page.drawText(itemTitleText, { x: 120, y: 394, size: titleFontSize, font: helveticaBold, color: charcoal });
         
-        page.drawText(data.itemSubtext, { x: 120, y: 377, size: 6.5, font: helvetica, color: muted });
+        page.drawText(data.itemSubtext, { x: 120, y: 382, size: 6.5, font: helvetica, color: muted });
 
         // --- BUTTONS & CLICKABLE LINKS ---
         
-        // DOWNLOAD NOW BUTTON Vector drawing (Stacked vertically under metadata, X: 120, rounded corners r=6)
+        // DOWNLOAD NOW BUTTON (Stacked vertically under metadata, X: 120, rounded corners r=6)
+        const btnW = 120;
+        const btnH = 24;
+        const btnX = 120;
+        const btnY = 347;
+        
+        const textFont = helveticaBold;
+        const textFontSize = 7.5;
+        const textWidth = textFont.widthOfTextAtSize(data.downloadBtnText, textFontSize);
+        const iconWidth = 10;
+        const gap = 5;
+        const totalW = iconWidth + gap + textWidth;
+        const contentX = btnX + (btnW - totalW) / 2;
+        const contentY = btnY + (btnH - textFontSize) / 2 + 0.5;
+        
+        // Draw filled button
         drawFilledRoundedRectangle(page, {
-            x: 120,
-            y: 342,
-            width: 115,
-            height: 24,
+            x: btnX,
+            y: btnY,
+            width: btnW,
+            height: btnH,
             r: 6,
             color: gold
         });
         
-        // Custom vector download icon inside the button
-        page.drawLine({ start: { x: 132, y: 358 }, end: { x: 132, y: 351 }, color: white, thickness: 1.2 });
-        page.drawLine({ start: { x: 129.5, y: 353.5 }, end: { x: 132, y: 351 }, color: white, thickness: 1.2 });
-        page.drawLine({ start: { x: 134.5, y: 353.5 }, end: { x: 132, y: 351 }, color: white, thickness: 1.2 });
-        page.drawLine({ start: { x: 128, y: 348 }, end: { x: 136, y: 348 }, color: white, thickness: 1.2 });
+        // Draw custom vector download icon
+        const iconStartX = contentX;
+        const iconStartY = btnY + (btnH - 10) / 2;
         
-        page.drawText(data.downloadBtnText, { x: 142, y: 351.5, size: 6.5, font: helveticaBold, color: white });
+        page.drawLine({ start: { x: iconStartX + 5, y: iconStartY + 9 }, end: { x: iconStartX + 5, y: iconStartY + 2.5 }, color: white, thickness: 1.2 });
+        page.drawLine({ start: { x: iconStartX + 2.5, y: iconStartY + 5 }, end: { x: iconStartX + 5, y: iconStartY + 2.5 }, color: white, thickness: 1.2 });
+        page.drawLine({ start: { x: iconStartX + 7.5, y: iconStartY + 5 }, end: { x: iconStartX + 5, y: iconStartY + 2.5 }, color: white, thickness: 1.2 });
+        page.drawLine({ start: { x: iconStartX + 1.5, y: iconStartY }, end: { x: iconStartX + 8.5, y: iconStartY }, color: white, thickness: 1.2 });
+        
+        // Draw text
+        page.drawText(data.downloadBtnText, {
+            x: contentX + iconWidth + gap,
+            y: contentY,
+            size: textFontSize,
+            font: textFont,
+            color: white
+        });
 
-        // Native PDF Clickable URI Link Annotation (Mapped to new X: 120 coordinates)
+        // Native PDF Clickable URI Link Annotation (Mapped to button coordinates)
         const downloadLink = pdfDoc.context.register(
             pdfDoc.context.obj({
                 Type: PDFName.of('Annot'),
                 Subtype: PDFName.of('Link'),
-                Rect: pdfDoc.context.obj([120, 342, 235, 366]), // bounds matched to X: 120 block
+                Rect: pdfDoc.context.obj([120, 347, 240, 371]),
                 Border: pdfDoc.context.obj([0, 0, 0]),
                 A: pdfDoc.context.obj({
                     Type: PDFName.of('Action'),
@@ -395,76 +485,68 @@ class PDFGenerator {
             })
         );
 
-        // E. Instructions Card (Y: ~130 to 325, rounded corners r=8)
+        // E. Instructions Card (Y: ~125 to 320, crisp WHITE background)
         drawFilledRoundedRectangle(page, {
             x: 45,
-            y: 130,
+            y: 125,
             width: 505,
             height: 195,
             r: 8,
-            color: cardBg,
+            color: whiteCardBg,
             borderColor: borderSoft,
             borderWidth: 1
         });
         
         // Header
-        page.drawText(data.instTitle, { x: 65, y: 300, size: 7.5, font: helveticaBold, color: muted });
+        drawTextSpaced(data.instTitle, 65, 295, 6.5, helveticaBold, gold, 1.5);
 
         // Step 1
-        page.drawCircle({ x: 75, y: 265, size: 10, color: gold });
-        page.drawText('1', { x: 72.5, y: 262, size: 8, font: helveticaBold, color: white });
-        page.drawText(data.step1Title, { x: 95, y: 266, size: 7.5, font: helveticaBold, color: charcoal });
-        page.drawText(data.step1Body, { x: 95, y: 254, size: 6.5, font: helvetica, color: muted });
+        drawStepNumber(1, 75, 257, 10, gold);
+        page.drawText(data.step1Title, { x: 95, y: 258, size: 7.5, font: helveticaBold, color: charcoal });
+        drawWrappedTextLeft(data.step1Body, 95, 246, 6.5, helvetica, muted, 420, 10);
 
         // Step 2
-        page.drawCircle({ x: 75, y: 215, size: 10, color: gold });
-        page.drawText('2', { x: 72.5, y: 212, size: 8, font: helveticaBold, color: white });
-        page.drawText(data.step2Title, { x: 95, y: 216, size: 7.5, font: helveticaBold, color: charcoal });
-        page.drawText(data.step2Body, { x: 95, y: 204, size: 6.5, font: helvetica, color: muted });
+        drawStepNumber(2, 75, 207, 10, gold);
+        page.drawText(data.step2Title, { x: 95, y: 208, size: 7.5, font: helveticaBold, color: charcoal });
+        drawWrappedTextLeft(data.step2Body, 95, 196, 6.5, helvetica, muted, 420, 10);
 
         // Step 3
-        page.drawCircle({ x: 75, y: 165, size: 10, color: gold });
-        page.drawText('3', { x: 72.5, y: 162, size: 8, font: helveticaBold, color: white });
-        page.drawText(data.step3Title, { x: 95, y: 166, size: 7.5, font: helveticaBold, color: charcoal });
-        page.drawText(data.step3Body, { x: 95, y: 154, size: 6.5, font: helvetica, color: muted });
+        drawStepNumber(3, 75, 157, 10, gold);
+        page.drawText(data.step3Title, { x: 95, y: 158, size: 7.5, font: helveticaBold, color: charcoal });
+        drawWrappedTextLeft(data.step3Body, 95, 146, 6.5, helvetica, muted, 420, 10);
 
         // G. Footer Section (Y: ~40 to 100)
         page.drawLine({
-            start: { x: 45, y: 105 },
-            end: { x: 550, y: 105 },
+            start: { x: 45, y: 100 },
+            end: { x: 550, y: 100 },
             color: borderSoft,
             thickness: 1
         });
 
         // Brand details left
-        page.drawText(data.footerShopTitle, { x: 45, y: 80, size: 9, font: timesBold, color: charcoal });
-        page.drawText(data.footerShopUrl, { x: 45, y: 66, size: 6.5, font: helvetica, color: muted });
+        page.drawText(data.footerShopTitle, { x: 45, y: 75, size: 9, font: timesBold, color: charcoal });
+        page.drawText(data.footerShopUrl, { x: 45, y: 61, size: 6.5, font: helvetica, color: muted });
 
-        // Rating Stars right (Using standard vector character symbol in Times Bold)
-        const starsNum = parseInt(data.ratingStars) || 5;
-        let starUnicodeStr = '';
-        for(let s=0; s<starsNum; s++) {
-            starUnicodeStr += '* ';
-        }
-        page.drawText('5 STAR RATED STORE', { x: 440, y: 80, size: 6.5, font: helveticaBold, color: gold });
+        // Rating Stars right
+        page.drawText('5 STAR RATED STORE', { x: 440, y: 75, size: 6.5, font: helveticaBold, color: gold });
 
         // LEAVE A REVIEW BUTTON (with rounded corners r=5)
         drawFilledRoundedRectangle(page, {
             x: 435,
-            y: 52,
+            y: 47,
             width: 100,
             height: 20,
             r: 5,
             color: charcoal
         });
-        page.drawText(data.reviewBtnText, { x: 452, y: 59, size: 5.5, font: helveticaBold, color: white });
+        page.drawText(data.reviewBtnText, { x: 452, y: 54, size: 5.5, font: helveticaBold, color: white });
 
         // Native PDF Clickable Review link
         const reviewLink = pdfDoc.context.register(
             pdfDoc.context.obj({
                 Type: PDFName.of('Annot'),
                 Subtype: PDFName.of('Link'),
-                Rect: pdfDoc.context.obj([435, 52, 535, 72]),
+                Rect: pdfDoc.context.obj([435, 47, 535, 67]),
                 Border: pdfDoc.context.obj([0, 0, 0]),
                 A: pdfDoc.context.obj({
                     Type: PDFName.of('Action'),
