@@ -13,20 +13,66 @@ function hexToRgb(hex) {
     } : { r: 0.77, g: 0.61, b: 0.15 }; // Default gold
 }
 
-// Helper to draw a beautiful, filled/outlined rounded rectangle using native PDF-lib SVG paths (perfectly smooth, no corner overlaps)
+// Helper to draw a beautiful, filled/outlined rounded rectangle using solid-nested shapes (perfectly smooth, no outline wireframe leaks and 100% correct coordinate alignment)
 function drawFilledRoundedRectangle(page, options) {
     const { x, y, width, height, r, color, borderColor, borderWidth } = options;
     
-    // SVG path string for a rounded rectangle of width and height with corner radius r
-    const path = `M ${r} 0 L ${width - r} 0 Q ${width} 0 ${width} ${r} L ${width} ${height - r} Q ${width} ${height} ${width - r} ${height} L ${r} ${height} Q 0 ${height} 0 ${height - r} L 0 ${r} Q 0 0 ${r} 0 Z`;
-    
-    page.drawSvgPath(path, {
-        x: x,
-        y: y,
-        color: color,
-        borderColor: borderColor,
-        borderWidth: borderWidth
-    });
+    // Internal helper to draw a solid filled rounded rectangle using standard rectangles and circles
+    const drawSolidRoundedRect = (px, py, pw, ph, pr, fillCol) => {
+        // Central horizontal rect
+        page.drawRectangle({
+            x: px + pr,
+            y: py,
+            width: pw - 2 * pr,
+            height: ph,
+            color: fillCol
+        });
+        // Central vertical rect
+        page.drawRectangle({
+            x: px,
+            y: py + pr,
+            width: pw,
+            height: ph - 2 * pr,
+            color: fillCol
+        });
+        // 4 filled corner circles of radius pr
+        page.drawCircle({ x: px + pr, y: py + pr, size: pr, color: fillCol });
+        page.drawCircle({ x: px + pw - pr, y: py + pr, size: pr, color: fillCol });
+        page.drawCircle({ x: px + pr, y: py + ph - pr, size: pr, color: fillCol });
+        page.drawCircle({ x: px + pw - pr, y: py + ph - pr, size: pr, color: fillCol });
+    };
+
+    // 1. If both border and fill are requested, use the solid nesting technique to prevent overlapping wireframes
+    if (borderColor && borderWidth && color) {
+        // Draw outer shape in border color
+        drawSolidRoundedRect(x, y, width, height, r, borderColor);
+        
+        // Draw inner shape in card background color (shrunk exactly by borderWidth)
+        const innerX = x + borderWidth;
+        const innerY = y + borderWidth;
+        const innerW = width - 2 * borderWidth;
+        const innerH = height - 2 * borderWidth;
+        const innerR = Math.max(0.5, r - borderWidth);
+        drawSolidRoundedRect(innerX, innerY, innerW, innerH, innerR, color);
+    } 
+    // 2. If only fill is requested
+    else if (color) {
+        drawSolidRoundedRect(x, y, width, height, r, color);
+    }
+    // 3. If only border is requested (unfilled)
+    else if (borderColor && borderWidth) {
+        // Draw outer outline border using standard lines
+        page.drawLine({ start: { x: x + r, y: y }, end: { x: x + width - r, y: y }, color: borderColor, thickness: borderWidth });
+        page.drawLine({ start: { x: x + r, y: y + height }, end: { x: x + width - r, y: y + height }, color: borderColor, thickness: borderWidth });
+        page.drawLine({ start: { x: x, y: y + r }, end: { x: x, y: y + height - r }, color: borderColor, thickness: borderWidth });
+        page.drawLine({ start: { x: x + width, y: y + r }, end: { x: x + width, y: y + height - r }, color: borderColor, thickness: borderWidth });
+
+        // Draw small outlined corner circles
+        page.drawCircle({ x: x + r, y: y + r, size: r, borderColor: borderColor, borderWidth: borderWidth });
+        page.drawCircle({ x: x + width - r, y: y + r, size: r, borderColor: borderColor, borderWidth: borderWidth });
+        page.drawCircle({ x: x + r, y: y + height - r, size: r, borderColor: borderColor, borderWidth: borderWidth });
+        page.drawCircle({ x: x + width - r, y: y + height - r, size: r, borderColor: borderColor, borderWidth: borderWidth });
+    }
 }
 
 // --- SECTION 2: VECTOR PDF GENERATOR ENGINE ---
