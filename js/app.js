@@ -322,11 +322,11 @@ class PDFGenerator {
             borderWidth: 1.2
         });
         
-        // 4 elegant outlined paint drops inside the palette
-        page.drawCircle({ x: 89, y: 382, size: 1.2, borderColor: paletteDrawColor, borderWidth: 1 });
-        page.drawCircle({ x: 91, y: 376, size: 1.2, borderColor: paletteDrawColor, borderWidth: 1 });
-        page.drawCircle({ x: 86, y: 380, size: 1.2, borderColor: paletteDrawColor, borderWidth: 1 });
-        page.drawCircle({ x: 87, y: 372, size: 1.2, borderColor: paletteDrawColor, borderWidth: 1 });
+        // 4 elegant solid paint drops inside the palette (matching the localhost solid drops)
+        page.drawCircle({ x: 89, y: 382, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 91, y: 376, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 86, y: 380, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 87, y: 372, size: 1.2, color: paletteDrawColor });
 
         // Item Metadata texts
         page.drawText(data.itemIndex, { x: 120, y: 403, size: 6, font: helveticaBold, color: gold });
