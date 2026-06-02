@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aether Rebrand - Luxury Digital Delivery Receipt Builder</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+    <!-- CSS Style Sheets with Cache Busting -->
+    <link rel="stylesheet" href="styles.css?v=5">
+    
+    <!-- PDF-Lib Local -->
+    <script src="js/lib/pdf-lib.min.js"></script>
+    <!-- Lucide Icons Local -->
+    <script src="js/lib/lucide.min.js"></script>
+    
+    <!-- Global Diagnostic Error Boundary -->
+    <script>
+        window.addEventListener('error', function(e) {
+            var banner = document.getElementById('diagErrorBanner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'diagErrorBanner';
+                banner.style.position = 'fixed';
+                banner.style.top = '0';
+                banner.style.left = '0';
+                banner.style.right = '0';
+                banner.style.backgroundColor = '#ef4444';
+                banner.style.color = '#ffffff';
+                banner.style.padding = '15px';
+                banner.style.zIndex = '99999';
+                banner.style.fontFamily = 'monospace';
+                banner.style.fontSize = '13px';
+                banner.style.fontWeight = 'bold';
+                banner.style.whiteSpace = 'pre-wrap';
+                banner.style.boxShadow = '0 5px 15px rgba(0,0,0,0.5)';
+                document.body.appendChild(banner);
+            }
+            banner.innerText = 'Diagnostic Error: ' + e.message + '\nFile: ' + e.filename + '\nLine: ' + e.lineno;
+        });
+    </script>
+</head>
+<body>
+    <div id="app" class="app-container">
+        
+        <!-- App Header Navbar -->
+        <header class="app-header">
+            <div class="header-logo">
+                <div class="logo-icon">
+                    <i data-lucide="gem"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>Aether Rebrand</h1>
+                    <span>Luxury Delivery PDF Studio</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button class="btn btn-primary" id="downloadBtn">
+                    <i data-lucide="download"></i>
+                    <span>Export PDF</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Studio Workspace Grid -->
+        <main class="studio-workspace">
+            
+            <!-- Left Workspace: Real-time Live HTML Receipt Preview -->
+            <section class="editor-viewport">
+                <div class="preview-scroll-wrapper">
+                    
+                    <!-- Pixel Perfect Luxury Receipt Container -->
+                    <div class="receipt-container" id="receiptContainer">
+                        
+                        <!-- Outer Gold Border -->
+                        <div class="receipt-border-outer">
+                            <div class="receipt-border-inner">
+                                
+                                <!-- Brand Header -->
+                                <div class="receipt-header">
+                                    <div class="receipt-shop-title" id="prevShopTitle">PROPACKSSTUDIO</div>
+                                    <div class="receipt-shop-subtitle" id="prevShopSubtitle">DIGITAL DOWNLOAD STORE</div>
+                                </div>
+                                
+                                <!-- Main Greeting Card (Soft Gradient) -->
+                                <div class="receipt-card main-card">
+                                    <div class="gift-icon-container">
+                                        <i data-lucide="gift"></i>
+                                    </div>
+                                    <div class="receipt-badge" id="prevMainBadge">DIGITAL DELIVERY READY</div>
+                                    <h2 class="receipt-main-title" id="prevMainTitle">YOUR FILES ARE READY!</h2>
+                                    <p class="receipt-main-body" id="prevMainBody">
+                                        Thank you for your purchase! We've put a lot of love into these assets. If you need any help, please feel free to contact us.
+                                    </p>
+                                    
+                                    <!-- Badges Row -->
+                                    <div class="badges-row">
+                                        <span class="pill-badge">
+                                            <i data-lucide="link-2"></i>
+                                            <span id="prevBadgePill1">ACCESS LINKS INCLUDED</span>
+                                        </span>
+                                        <span class="pill-badge">
+                                            <i data-lucide="message-square"></i>
+                                            <span id="prevBadgePill2">SUPPORT AVAILABLE ANYTIME</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Download Label Header -->
+                                <div class="section-label" id="prevSectionLabel">YOUR DOWNLOAD LINKS</div>
+                                
+                                <!-- Download Link Box Card -->
+                                <div class="receipt-card download-card">
+                                    <div class="download-item-info">
+                                        <div class="clapper-icon-container">
+                                            <i data-lucide="palette"></i>
+                                        </div>
+                                        <div class="item-meta">
+                                            <span class="item-index" id="prevItemIndex">FILE 01</span>
+                                            <h3 class="item-title" id="prevItemTitle">700+ iPhone LUTs Pack</h3>
+                                            <p class="item-subtext" id="prevItemSubtext">Instant Access | Digital Download | No Expiry</p>
+                                            
+                                            <!-- Embedded Hyperlink Button Preview (Placed Underneath Subtext) -->
+                                            <div class="btn-download-wrapper" style="margin-top: 10px; display: flex;">
+                                                <a class="btn-download-pdf-preview" id="prevDownloadBtn" href="#" target="_blank">
+                                                    <i data-lucide="download"></i>
+                                                    <span id="prevDownloadBtnText">Download Now</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- How to Use Section -->
+                                <div class="receipt-card instructions-card">
+                                    <div class="instructions-title" id="prevInstTitle">HOW TO USE YOUR FILES</div>
+                                    
+                                    <ul class="instructions-list">
+                                        <li>
+                                            <div class="number-badge">1</div>
+                                            <div class="step-content">
+                                                <h4 id="prevStep1Title">DOWNLOAD YOUR FILES</h4>
+                                                <p id="prevStep1Body">Download the ZIP file by clicking the Download button above. Extract the folder to your Desktop.</p>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="number-badge">2</div>
+                                            <div class="step-content">
+                                                <h4 id="prevStep2Title">IMPORT INTO YOUR APP</h4>
+                                                <p id="prevStep2Body">Open Lightroom, Premiere Pro, or your editing app. Go to Import, navigate to the extracted folder, and select the files.</p>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="number-badge">3</div>
+                                            <div class="step-content">
+                                                <h4 id="prevStep3Title">APPLY & ENJOY!</h4>
+                                                <p id="prevStep3Body">Apply the Preset or LUT to your photo/video. Adjust the intensity/opacity to taste. Enjoy your stunning results!</p>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- Footer Bar -->
+                                <div class="receipt-footer">
+                                    <div class="footer-left">
+                                        <div class="footer-shop-title" id="prevFooterShopTitle">PROPACKSSTUDIO</div>
+                                        <a class="footer-shop-url" id="prevFooterShopUrl" href="#" target="_blank">https://propaksstudio.etsy.com</a>
+                                    </div>
+                                    <div class="footer-right">
+                                        <div class="rating-stars" id="prevRatingStars">
+                                            <i data-lucide="star" class="fill-star"></i>
+                                            <i data-lucide="star" class="fill-star"></i>
+                                            <i data-lucide="star" class="fill-star"></i>
+                                            <i data-lucide="star" class="fill-star"></i>
+                                            <i data-lucide="star" class="fill-star"></i>
+                                        </div>
+                                        <!-- Review Hyperlink Button Preview -->
+                                        <a class="btn-review-pdf-preview" id="prevReviewBtn" href="#" target="_blank">
+                                            <span id="prevReviewBtnText">LEAVE A REVIEW</span>
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Workspace: Text and Link Configuration Sidebar -->
+            <aside class="sidebar-right">
+                <div class="sidebar-title">
+                    <i data-lucide="edit-3"></i>
+                    <h2>Receipt Studio Controls</h2>
+                </div>
+
+                <!-- Premium Theme Selector -->
+                <div class="theme-selector-container">
+                    <label>Receipt Style Theme</label>
+                    <div class="theme-buttons-row">
+                        <button class="theme-btn active" id="themeBtnLight" data-theme="light">
+                            <span class="theme-dot dot-light"></span>
+                            <span>Light Gold</span>
+                        </button>
+                        <button class="theme-btn" id="themeBtnDark" data-theme="dark">
+                            <span class="theme-dot dot-dark"></span>
+                            <span>Midnight Black</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tab-contents">
+                    
+                    <!-- Section A: Brand & Headers -->
+                    <div class="properties-group">
+                        <h3>Shop Identity</h3>
+                        <div class="property-grid">
+                            <div class="property-row">
+                                <label>Brand Name</label>
+                                <input type="text" id="inpShopTitle" value="PROPACKSSTUDIO">
+                            </div>
+                            <div class="property-row">
+                                <label>Subtitle</label>
+                                <input type="text" id="inpShopSubtitle" value="DIGITAL DOWNLOAD STORE">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label>Gold Accent Color</label>
+                            <div class="color-picker-group">
+                                <input type="color" id="inpAccentColor" value="#c59b27">
+                                <span class="color-val-label">#c59b27</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section B: Main Card greeting -->
+                    <div class="properties-group">
+                        <h3>Delivery Card Message</h3>
+                        <div class="property-grid">
+                            <div class="property-row">
+                                <label>Pill Badge</label>
+                                <input type="text" id="inpMainBadge" value="DIGITAL DELIVERY READY">
+                            </div>
+                            <div class="property-row">
+                                <label>Main Title</label>
+                                <input type="text" id="inpMainTitle" value="YOUR FILES ARE READY!">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label>Greeting Text Body</label>
+                            <textarea id="inpMainBody">Thank you for your purchase! We've put a lot of love into these assets. If you need any help, please feel free to contact us.</textarea>
+                        </div>
+                        <div class="property-grid">
+                            <div class="property-row">
+                                <label>Badge Pill 1</label>
+                                <input type="text" id="inpBadgePill1" value="ACCESS LINKS INCLUDED">
+                            </div>
+                            <div class="property-row">
+                                <label>Badge Pill 2</label>
+                                <input type="text" id="inpBadgePill2" value="SUPPORT AVAILABLE ANYTIME">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section C: Download Item & Klik Link -->
+                    <div class="properties-group highlighted-group">
+                        <h3>Download Link Box</h3>
+                        <div class="property-grid">
+                            <div class="property-row">
+                                <label>Download Section Label</label>
+                                <input type="text" id="inpSectionLabel" value="YOUR DOWNLOAD LINKS">
+                            </div>
+                            <div class="property-row">
+                                <label>Item Index</label>
+                                <input type="text" id="inpItemIndex" value="FILE 01">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label>Product / Item Title</label>
+                            <input type="text" id="inpItemTitle" value="700+ iPhone LUTs Pack">
+                        </div>
+                        <div class="property-row">
+                            <label>Product Subtext</label>
+                            <input type="text" id="inpItemSubtext" value="Instant Access | Digital Download | No Expiry">
+                        </div>
+                        <div class="property-grid">
+                            <div class="property-row">
+                                <label>Button Text</label>
+                                <input type="text" id="inpDownloadBtnText" value="Download Now">
+                            </div>
+                            <div class="property-row">
+                                <label>CLICKABLE LINK URL</label>
+                                <input type="url" class="glowing-input" id="inpDownloadUrl" value="https://example.com/your-zip-file-link" placeholder="https://google.com/drive-link">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section D: Instructions Steps -->
+                    <div class="properties-group">
+                        <h3>Instructions (How to Use)</h3>
+                        <div class="property-row">
+                            <label>Header Title</label>
+                            <input type="text" id="inpInstTitle" value="HOW TO USE YOUR FILES">
+                        </div>
+                        <div class="nested-step">
+                            <h4>Step 1: Download</h4>
+                            <input type="text" id="inpStep1Title" value="DOWNLOAD YOUR FILES" style="margin-bottom:6px;">
+                            <textarea id="inpStep1Body" style="height:50px;">Download the ZIP file by clicking the Download button above. Extract the folder to your Desktop.</textarea>
+                        </div>
+                        <div class="nested-step" style="margin-top:10px;">
+                            <h4>Step 2: Import</h4>
+                            <input type="text" id="inpStep2Title" value="IMPORT INTO YOUR APP" style="margin-bottom:6px;">
+                            <textarea id="inpStep2Body" style="height:50px;">Open Lightroom, Premiere Pro, or your editing app. Go to Import, navigate to the extracted folder, and select the files.</textarea>
+                        </div>
+                        <div class="nested-step" style="margin-top:10px;">
+                            <h4>Step 3: Apply</h4>
+                            <input type="text" id="inpStep3Title" value="APPLY & ENJOY!" style="margin-bottom:6px;">
+                            <textarea id="inpStep3Body" style="height:50px;">Apply the Preset or LUT to your photo/video. Adjust the intensity/opacity to taste. Enjoy your stunning results!</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Section E: Review & Footer Links -->
+                    <div class="properties-group">
+                        <h3>Review & Footer Details</h3>
+                        <div class="property-grid">
+                            <div class="property-row">
+                                <label>Footer Brand Name</label>
+                                <input type="text" id="inpFooterShopTitle" value="PROPACKSSTUDIO">
+                            </div>
+                            <div class="property-row">
+                                <label>Footer Shop URL</label>
+                                <input type="text" id="inpFooterShopUrl" value="https://propaksstudio.etsy.com">
+                            </div>
+                        </div>
+                        <div class="property-grid">
+                            <div class="property-row">
+                                <label>Rating Stars (1-5)</label>
+                                <select id="inpRatingStars">
+                                    <option value="5">5 Stars (Premium)</option>
+                                    <option value="4">4 Stars</option>
+                                    <option value="3">3 Stars</option>
+                                </select>
+                            </div>
+                            <div class="property-row">
+                                <label>Review Button Text</label>
+                                <input type="text" id="inpReviewBtnText" value="LEAVE A REVIEW">
+                            </div>
+                        </div>
+                        <div class="property-row">
+                            <label>CLICKABLE REVIEW URL</label>
+                            <input type="url" class="glowing-input" id="inpReviewUrl" value="https://etsy.com/your-shop-reviews" placeholder="https://etsy.com/shop/reviews">
+                        </div>
+                    </div>
+
+                </div>
+            </aside>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loader-overlay hidden" id="loaderOverlay">
+            <div class="loader-content" id="loaderNormalContent">
+                <div class="neon-spinner"></div>
+                <h3>Generating High-Fidelity PDF</h3>
+                <p>Drawing vectors, applying gold frames, embedding text, and mapping native clickable hyperlink annotations...</p>
+            </div>
+            
+            <!-- Elegant Error Card (Hidden by default) -->
+            <div class="loader-error-card hidden" id="loaderErrorCard">
+                <div class="error-icon-box">
+                    <i data-lucide="alert-octagon"></i>
+                </div>
+                <h3>Stamping Error</h3>
+                <p id="loaderErrorMessage">An error occurred during PDF compilation.</p>
+                <button class="btn btn-danger" id="loaderErrorCloseBtn" style="margin-top: 15px;">Dismiss</button>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Main JS Application script with Cache Busting -->
+    <script src="js/app.js?v=5"></script>
+</body>
+</html>
