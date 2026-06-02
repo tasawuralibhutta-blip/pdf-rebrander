@@ -18,7 +18,7 @@ class PDFGenerator {
     constructor() {}
 
     async buildLuxuryReceipt(data) {
-        const { PDFDocument, rgb, StandardFonts, PDFName, PDFString } = PDFLib;
+        const { PDFDocument, rgb, PDFName, PDFString } = PDFLib;
         
         // 1. Create Document & Set standard A4 Layout (595 x 842 points)
         const pdfDoc = await PDFDocument.create();
@@ -49,10 +49,10 @@ class PDFGenerator {
         }
         
         // 3. Embed Standard PDF Fonts
-        const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
-        const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-        const times = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-        const timesBold = await pdfDoc.embedFont(StandardFonts.TimesBold);
+        const helvetica = await pdfDoc.embedFont('Helvetica');
+        const helveticaBold = await pdfDoc.embedFont('Helvetica-Bold');
+        const times = await pdfDoc.embedFont('Times-Roman');
+        const timesBold = await pdfDoc.embedFont('Times-Bold');
         
         // 4. Centered Text Helper
         const drawCenteredText = (text, y, fontSize, font, color) => {
