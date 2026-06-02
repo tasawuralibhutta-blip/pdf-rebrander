@@ -234,15 +234,15 @@ class PDFGenerator {
         page.drawCircle({
             x: 87,
             y: 377,
-            radius: 9,
+            size: 9,
             borderColor: paletteDrawColor,
             borderWidth: 1.5
         });
         // Paint drops
-        page.drawCircle({ x: 83, y: 380, radius: 1.2, color: paletteDrawColor });
-        page.drawCircle({ x: 89, y: 382, radius: 1.2, color: paletteDrawColor });
-        page.drawCircle({ x: 91, y: 376, radius: 1.2, color: paletteDrawColor });
-        page.drawCircle({ x: 85, y: 372, radius: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 83, y: 380, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 89, y: 382, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 91, y: 376, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 85, y: 372, size: 1.2, color: paletteDrawColor });
 
         // Item Metadata texts
         page.drawText(data.itemIndex, { x: 120, y: 403, size: 6, font: helveticaBold, color: gold });
@@ -309,19 +309,19 @@ class PDFGenerator {
         page.drawText(data.instTitle, { x: 65, y: 300, size: 7.5, font: helveticaBold, color: muted });
 
         // Step 1
-        page.drawCircle({ x: 75, y: 265, radius: 10, color: gold });
+        page.drawCircle({ x: 75, y: 265, size: 10, color: gold });
         page.drawText('1', { x: 72.5, y: 262, size: 8, font: helveticaBold, color: white });
         page.drawText(data.step1Title, { x: 95, y: 266, size: 7.5, font: helveticaBold, color: charcoal });
         page.drawText(data.step1Body, { x: 95, y: 254, size: 6.5, font: helvetica, color: muted });
 
         // Step 2
-        page.drawCircle({ x: 75, y: 215, radius: 10, color: gold });
+        page.drawCircle({ x: 75, y: 215, size: 10, color: gold });
         page.drawText('2', { x: 72.5, y: 212, size: 8, font: helveticaBold, color: white });
         page.drawText(data.step2Title, { x: 95, y: 216, size: 7.5, font: helveticaBold, color: charcoal });
         page.drawText(data.step2Body, { x: 95, y: 204, size: 6.5, font: helvetica, color: muted });
 
         // Step 3
-        page.drawCircle({ x: 75, y: 165, radius: 10, color: gold });
+        page.drawCircle({ x: 75, y: 165, size: 10, color: gold });
         page.drawText('3', { x: 72.5, y: 162, size: 8, font: helveticaBold, color: white });
         page.drawText(data.step3Title, { x: 95, y: 166, size: 7.5, font: helveticaBold, color: charcoal });
         page.drawText(data.step3Body, { x: 95, y: 154, size: 6.5, font: helvetica, color: muted });
