@@ -238,7 +238,7 @@ class PDFGenerator {
         // Multi-line wrapped main body greeting
         drawWrappedTextCentered(data.mainBody, 575, 8.5, helvetica, charcoal, 420);
 
-        // Badges Row (Pill Banners with r=11)
+        // Badges Row (Pill Banners with r=11 and custom gold vector outline icons)
         // Pill 1
         drawFilledRoundedRectangle(page, {
             x: 95,
@@ -250,7 +250,12 @@ class PDFGenerator {
             borderColor: gold,
             borderWidth: 1
         });
-        page.drawText(data.badgePill1, { x: 125, y: 507, size: 5.5, font: helveticaBold, color: gold });
+        // Draw detailed vector gold link icon next to text
+        drawFilledRoundedRectangle(page, { x: 104, y: 508, width: 8, height: 6, r: 2, borderColor: gold, borderWidth: 1.2 });
+        drawFilledRoundedRectangle(page, { x: 110, y: 508, width: 8, height: 6, r: 2, borderColor: gold, borderWidth: 1.2 });
+        page.drawLine({ start: { x: 108, y: 511 }, end: { x: 114, y: 511 }, color: gold, thickness: 1.2 });
+        
+        page.drawText(data.badgePill1, { x: 124, y: 507, size: 5.5, font: helveticaBold, color: gold });
         
         // Pill 2
         drawFilledRoundedRectangle(page, {
@@ -263,7 +268,12 @@ class PDFGenerator {
             borderColor: gold,
             borderWidth: 1
         });
-        page.drawText(data.badgePill2, { x: 335, y: 507, size: 5.5, font: helveticaBold, color: gold });
+        // Draw detailed vector gold message bubble icon next to text
+        drawFilledRoundedRectangle(page, { x: 319, y: 508, width: 11, height: 7, r: 2, borderColor: gold, borderWidth: 1.2 });
+        page.drawLine({ start: { x: 321, y: 508 }, end: { x: 319, y: 505 }, color: gold, thickness: 1.2 });
+        page.drawLine({ start: { x: 319, y: 505 }, end: { x: 324, y: 508 }, color: gold, thickness: 1.2 });
+        
+        page.drawText(data.badgePill2, { x: 336, y: 507, size: 5.5, font: helveticaBold, color: gold });
 
         // D. Download Link Box Card (Y: ~330 to 425)
         // Header label
@@ -304,7 +314,7 @@ class PDFGenerator {
         // Beautiful Paint Palette Vector Drawing inside the box (Drawn in solid dark charcoal with gold cutout thumb-hole)
         const paletteDrawColor = rgb(0.1, 0.1, 0.1);
         
-        // Beautiful outlined paint palette body (matching the localhost outlined design)
+        // Beautiful outlined paint palette body (matching the localhost outlined design with an organic bite/cutout)
         page.drawCircle({
             x: 87,
             y: 377,
@@ -312,7 +322,13 @@ class PDFGenerator {
             borderColor: paletteDrawColor,
             borderWidth: 1.5
         });
-        
+        // Organic palette "bite" cutout filled with background gold color to form a perfect kidney bean shape
+        page.drawCircle({
+            x: 92.5,
+            y: 372.5,
+            size: 3.5,
+            color: gold
+        });
         // Outlined thumb hole
         page.drawCircle({
             x: 83,
@@ -323,10 +339,10 @@ class PDFGenerator {
         });
         
         // 4 elegant solid paint drops inside the palette (matching the localhost solid drops)
-        page.drawCircle({ x: 89, y: 382, size: 1.2, color: paletteDrawColor });
-        page.drawCircle({ x: 91, y: 376, size: 1.2, color: paletteDrawColor });
-        page.drawCircle({ x: 86, y: 380, size: 1.2, color: paletteDrawColor });
-        page.drawCircle({ x: 87, y: 372, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 88, y: 381.5, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 92, y: 377.5, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 85, y: 378, size: 1.2, color: paletteDrawColor });
+        page.drawCircle({ x: 86, y: 372.5, size: 1.2, color: paletteDrawColor });
 
         // Item Metadata texts
         page.drawText(data.itemIndex, { x: 120, y: 403, size: 6, font: helveticaBold, color: gold });
