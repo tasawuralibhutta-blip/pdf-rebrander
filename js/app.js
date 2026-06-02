@@ -13,69 +13,20 @@ function hexToRgb(hex) {
     } : { r: 0.77, g: 0.61, b: 0.15 }; // Default gold
 }
 
-// Helper to draw a beautiful, filled/outlined rounded rectangle using core PDF-lib shapes
+// Helper to draw a beautiful, filled/outlined rounded rectangle using native PDF-lib SVG paths (perfectly smooth, no corner overlaps)
 function drawFilledRoundedRectangle(page, options) {
     const { x, y, width, height, r, color, borderColor, borderWidth } = options;
     
-    // 1. Draw solid filled shape if color is provided
-    if (color) {
-        // Central horizontal rect
-        page.drawRectangle({
-            x: x + r,
-            y: y,
-            width: width - 2 * r,
-            height: height,
-            color: color
-        });
-        // Central vertical rect
-        page.drawRectangle({
-            x: x,
-            y: y + r,
-            width: width,
-            height: height - 2 * r,
-            color: color
-        });
-        // 4 filled corner circles of radius r
-        page.drawCircle({ x: x + r, y: y + r, size: r, color: color });
-        page.drawCircle({ x: x + width - r, y: y + r, size: r, color: color });
-        page.drawCircle({ x: x + r, y: y + height - r, size: r, color: color });
-        page.drawCircle({ x: x + width - r, y: y + height - r, size: r, color: color });
-    }
-
-    // 2. Draw border outline if borderColor is provided
-    if (borderColor && borderWidth) {
-        // Draw 4 borders lines
-        page.drawLine({
-            start: { x: x + r, y: y },
-            end: { x: x + width - r, y: y },
-            color: borderColor,
-            thickness: borderWidth
-        });
-        page.drawLine({
-            start: { x: x + r, y: y + height },
-            end: { x: x + width - r, y: y + height },
-            color: borderColor,
-            thickness: borderWidth
-        });
-        page.drawLine({
-            start: { x: x, y: y + r },
-            end: { x: x, y: y + height - r },
-            color: borderColor,
-            thickness: borderWidth
-        });
-        page.drawLine({
-            start: { x: x + width, y: y + r },
-            end: { x: x + width, y: y + height - r },
-            color: borderColor,
-            thickness: borderWidth
-        });
-
-        // Draw 4 corner circle outlines
-        page.drawCircle({ x: x + r, y: y + r, size: r, borderColor: borderColor, borderWidth: borderWidth });
-        page.drawCircle({ x: x + width - r, y: y + r, size: r, borderColor: borderColor, borderWidth: borderWidth });
-        page.drawCircle({ x: x + r, y: y + height - r, size: r, borderColor: borderColor, borderWidth: borderWidth });
-        page.drawCircle({ x: x + width - r, y: y + height - r, size: r, borderColor: borderColor, borderWidth: borderWidth });
-    }
+    // SVG path string for a rounded rectangle of width and height with corner radius r
+    const path = `M ${r} 0 L ${width - r} 0 Q ${width} 0 ${width} ${r} L ${width} ${height - r} Q ${width} ${height} ${width - r} ${height} L ${r} ${height} Q 0 ${height} 0 ${height - r} L 0 ${r} Q 0 0 ${r} 0 Z`;
+    
+    page.drawSvgPath(path, {
+        x: x,
+        y: y,
+        color: color,
+        borderColor: borderColor,
+        borderWidth: borderWidth
+    });
 }
 
 // --- SECTION 2: VECTOR PDF GENERATOR ENGINE ---
@@ -250,7 +201,7 @@ class PDFGenerator {
             height: 22,
             r: 11,
             color: innerCardBg,
-            borderColor: borderSoft,
+            borderColor: gold,
             borderWidth: 1
         });
         page.drawText(data.badgePill1, { x: 125, y: 507, size: 5.5, font: helveticaBold, color: gold });
@@ -263,7 +214,7 @@ class PDFGenerator {
             height: 22,
             r: 11,
             color: innerCardBg,
-            borderColor: borderSoft,
+            borderColor: gold,
             borderWidth: 1
         });
         page.drawText(data.badgePill2, { x: 335, y: 507, size: 5.5, font: helveticaBold, color: gold });
@@ -307,27 +258,29 @@ class PDFGenerator {
         // Beautiful Paint Palette Vector Drawing inside the box (Drawn in solid dark charcoal with gold cutout thumb-hole)
         const paletteDrawColor = rgb(0.1, 0.1, 0.1);
         
-        // Solid palette body
+        // Beautiful outlined paint palette body (matching the localhost outlined design)
         page.drawCircle({
             x: 87,
             y: 377,
             size: 9,
-            color: paletteDrawColor
+            borderColor: paletteDrawColor,
+            borderWidth: 1.5
         });
         
-        // Thumb hole (Filled with background gold color to look like a cutout!)
+        // Outlined thumb hole
         page.drawCircle({
             x: 83,
-            y: 374,
+            y: 373,
             size: 2.2,
-            color: gold
+            borderColor: paletteDrawColor,
+            borderWidth: 1.2
         });
         
-        // 4 elegant gold paint drops on the palette
-        page.drawCircle({ x: 89, y: 382, size: 1.2, color: gold });
-        page.drawCircle({ x: 91, y: 376, size: 1.2, color: gold });
-        page.drawCircle({ x: 86, y: 380, size: 1.2, color: gold });
-        page.drawCircle({ x: 87, y: 372, size: 1.2, color: gold });
+        // 4 elegant outlined paint drops inside the palette
+        page.drawCircle({ x: 89, y: 382, size: 1.2, borderColor: paletteDrawColor, borderWidth: 1 });
+        page.drawCircle({ x: 91, y: 376, size: 1.2, borderColor: paletteDrawColor, borderWidth: 1 });
+        page.drawCircle({ x: 86, y: 380, size: 1.2, borderColor: paletteDrawColor, borderWidth: 1 });
+        page.drawCircle({ x: 87, y: 372, size: 1.2, borderColor: paletteDrawColor, borderWidth: 1 });
 
         // Item Metadata texts
         page.drawText(data.itemIndex, { x: 120, y: 403, size: 6, font: helveticaBold, color: gold });
